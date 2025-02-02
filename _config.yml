@@ -1,0 +1,7 @@
+title: "Your Name - Academic Profile"
+author: "Your Name"
+email: "your.email@university.edu"
+description: "A personal academic website showcasing research, publications, and projects."
+baseurl: ""
+url: "https://your-username.github.io"
+theme: minima  # You can change this to another theme
