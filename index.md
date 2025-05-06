@@ -13,5 +13,5 @@ I am **Vincenzo Maria Schimmenti**. I am a post-doctoral researcher at the **Max
 - Theoretical Physics
 
 ## Latest Publications
-1. **Paper Title 1** - Journal, Year ([DOI Link](#))
+1. **Phase Behaviour of Cacio e pepe** - Physics of Fluids, 2025 ([DOI Link](https://doi.org/10.1063/5.0255841))
 2. **Paper Title 2** - Conference, Year ([DOI Link](#))
