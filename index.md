@@ -5,7 +5,7 @@ title: Home
 
 # Welcome to My Academic Page
 
-I am **Your Name**, a researcher at **Your Institution**.
+I am **Vincenzo Maria Schimmenti**. I am a post-doctoral researcher at the **Max Planck Institute for the Physics of Complex Systems** in Dresden.
 
 ## Research Interests
 - Computational Biology
