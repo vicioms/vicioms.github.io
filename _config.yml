@@ -1,7 +1,7 @@
 title: "Schimmenti Personal Page"
 author: "Vincenzo Maria Schimmenti"
-email: "surname@pks.mpg.de"
+email: "schimmenti_at_pks.mpg.de"
 description: "A personal academic website showcasing research, publications, and projects."
 baseurl: ""
 url: "https://vicioms.github.io"
-theme: minima  # You can change this to another theme
+theme: slate
