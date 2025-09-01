@@ -1,0 +1,10 @@
+title: Vincenzo Schimmenti
+description: Personal site
+# User site, so baseurl must be empty:
+url: "https://vicioms.github.io"
+baseurl: ""
+
+# Use a Pages theme via remote_theme
+remote_theme: pages-themes/slate@v0.2.0
+plugins:
+  - jekyll-remote-theme
