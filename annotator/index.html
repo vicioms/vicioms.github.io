@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Point Cloud Annotator — PLY (Folder, Brush, Labels, Resume)</title>
+  <style>
+    html, body { height: 100%; margin: 0; overflow: hidden; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    #app { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr; background: #0b0f14; color: #e6edf3; }
+    .toolbar { display: flex; gap: 10px; align-items: center; padding: 10px 12px; background: rgba(12,16,22,0.92); border-bottom: 1px solid #1f2937; backdrop-filter: blur(6px); flex-wrap: wrap; }
+    .title { font-weight: 700; margin-right: 8px; }
+    .btn { cursor: pointer; border: 1px solid #324153; background: #141b23; padding: 6px 10px; border-radius: 10px; font-size: 13px; color:#e6edf3; }
+    .btn:hover { background: #18222c; }
+    select { background: #141b23; border: 1px solid #324153; border-radius: 8px; color: #e6edf3; padding: 6px 8px; font-size: 13px; }
+    .soft { color: #9fb0c2; font-size: 12px; }
+
+    #rect { position: absolute; border: 1px dashed #d0e2ff; background: rgba(103,188,255,0.12); display: none; pointer-events: none; }
+    .status { position: absolute; left: 10px; bottom: 10px; padding: 8px 10px; background: rgba(12,16,22,0.85); border: 1px solid #1f2937; border-radius: 10px; font-size: 12px; color: #b3c1d1; }
+    input[type="file"]#folder-input { display: none; }
+
+    /* Sidebar */
+    .side { position:absolute; right:12px; top:64px; width:320px; max-height: calc(100% - 76px); overflow:auto; padding:12px; background: rgba(12,16,22,0.88); border:1px solid #1f2937; border-radius:12px; backdrop-filter: blur(6px); }
+    .side h3 { margin: 8px 0; font-size: 14px; color:#cfe0f4; }
+    .row { display:flex; align-items:center; gap:8px; }
+    input[type="range"]{ width:180px; }
+
+    /* Brush cursor */
+    #brushCursor { position:absolute; border:1px solid rgba(255,255,0,0.9); border-radius:50%; pointer-events:none; display:none; box-shadow:0 0 0 1px rgba(255,0,255,0.6) inset; }
+  </style>
+
+  <!-- ESM imports for three and addons -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <div class="toolbar">
+      <div class="title">Point Cloud Annotator</div>
+      <label for="folder-input" class="btn">Load Folder</label>
+      <input type="file" id="folder-input" webkitdirectory directory multiple />
+      <select id="cloud-select"></select>
+      <span class="soft">Label:</span>
+      <select id="label-select"></select>
+      <button id="btn-apply-label" class="btn">Apply</button>
+      <button id="btn-add-label" class="btn">+ Add Label</button>
+      <button id="btn-fit" class="btn">Fit</button>
+      <button id="btn-clear" class="btn">Clear Selection</button>
+      <button id="btn-save-progress" class="btn">Save Progress</button>
+      <button id="btn-load-progress" class="btn">Load Progress</button>
+      <button id="btn-export-autosave" class="btn">Export Autosave</button>
+      <button id="btn-reset-ann" class="btn">Reset Annotations</button>
+      <button id="btn-toggle-mesh" class="btn">Toggle Mesh</button>
+      <div style="flex:1"></div>
+      <div class="soft">Shift/Alt + drag = rectangle • B = brush • 0–9 = label • X = erase • Autosave per file</div>
+    </div>
+    <div id="viewport"></div>
+  </div>
+
+  <div id="rect"></div>
+  <div id="brushCursor"></div>
+  <div class="status" id="status">No file loaded</div>
+
+  <div class="side" id="sidebar">
+    <h3>Display</h3>
+    <div class="row">
+      <span class="soft">Point size (px)</span>
+      <input id="size-slider" type="range" min="1" max="50" step="1" value="8" />
+      <span id="size-val" class="soft">8</span>
+    </div>
+    <h3>Brush</h3>
+    <div class="row" style="margin-bottom:6px">
+      <label class="soft"><input id="brush-enable" type="checkbox" /> Enable brush (B)</label>
+    </div>
+    <div class="row">
+      <span class="soft">Radius (px)</span>
+      <input id="brush-radius" type="range" min="5" max="200" step="1" value="40" />
+      <span id="brush-radius-val" class="soft">40</span>
+    </div>
+    <div class="soft" style="margin-top:8px">Choose a label above. With brush enabled, click & drag to paint; choose <b>Erase (-1)</b> or hold <b>Alt</b> to erase.</div>
+  </div>
+
+  <!-- Your app code, as a module -->
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
