@@ -232,42 +232,31 @@ function handleFolder(e){
 function loadPLY(file, key){
   const reader = new FileReader();
   const loader = new PLYLoader();
-
-  reader.onload = (e) => {
+  reader.onload = e => {
     try {
       const g = loader.parse(e.target.result);
-      const N = g.getAttribute('position').count;
-      const L = new Int32Array(N).fill(DEFAULT_LABEL);
+      const idx = g.getIndex();
+      const isMesh = !!(idx && idx.count > 0);
 
-      // Auto-resume labels from LocalStorage if present
-      const skey = `anno:${key}:N=${N}`;
-      try {
-        const raw = localStorage.getItem(skey);
-        if (raw) {
-          const arr = JSON.parse(raw);
-          if (Array.isArray(arr) && arr.length === N) L.set(arr);
-        }
-      } catch (_) { /* ignore parse errors */ }
+      if (isMesh) {
+        if (!g.getAttribute('normal')) g.computeVertexNormals();
+        const N = g.getAttribute('position').count;
+        const L = new Int32Array(N).fill(DEFAULT_LABEL);
+        fileMap[key] = { geometry: g, kind: 'mesh', labels: L };
+      } else {
+        const N = g.getAttribute('position').count;
+        const L = new Int32Array(N).fill(DEFAULT_LABEL);
+        fileMap[key] = { geometry: g, kind: 'points', labels: L };
+      }
 
-      fileMap[key] = { geometry: g, labels: L };
-
-      // If nothing is shown yet or this is the current target, display it
-      if (!points || currentFile === key) switchCloud(key);
-    } catch (err) {
+      if ((!points && !mesh) || currentFile===key) switchCloud(key);
+    } catch(err){
       console.error('Failed to parse', key, err);
       statusEl.textContent = `Failed to parse ${key}`;
     }
   };
-
-  reader.onerror = () => {
-    console.error('Read error for', key);
-    statusEl.textContent = `Failed to read ${key}`;
-  };
-
   reader.readAsArrayBuffer(file);
 }
-
-
 
 
 // ---------- Switch / Dispose ----------
@@ -730,22 +719,6 @@ function loadProgress(){
     r.readAsText(f);
   };
   input.click();
-}
-
-function exportAutosave(){
-  const data={};
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k && k.startsWith('anno:')){
-      try{ data[k]=JSON.parse(localStorage.getItem(k)); }
-      catch(e){ console.warn('skip',k); }
-    }
-  }
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='autosave_annotations.json'; a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),0);
-  statusEl.textContent='Exported autosave_annotations.json';
 }
 
 function resetAnnotations(){
