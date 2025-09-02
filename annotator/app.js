@@ -100,8 +100,10 @@ function init(){
   window.addEventListener('resize', onResize);
   document.getElementById('folder-input').addEventListener('change', handleFolder);
   document.getElementById('btn-save-progress').onclick = saveProgress;
+  //document.getElementById('btn-save-progress').onclick = saveProgressAll;
   document.getElementById('btn-load-progress').onclick = loadProgress;
-  document.getElementById('btn-export-autosave').onclick = exportAutosave;
+  //document.getElementById('btn-export-autosave').onclick = exportAutosave;
+  document.getElementById('btn-export-ls').onclick = exportLocalStorageAll;
   document.getElementById('btn-reset-ann').onclick = resetAnnotations;
   document.getElementById('btn-fit').onclick = fitToGeometry;
   document.getElementById('btn-clear').onclick = ()=>{ selection.clear(); updateSelHighlight(); };
@@ -202,54 +204,71 @@ function animate(){
   renderer.render(scene, camera);
 }
 
-// ---------- Folder loading ----------
 function handleFolder(e){
-  const all = Array.from(e.target.files || []);
-  const files = all.filter(f => /\.(ply)$/i.test(f.name));
-  files.sort((a,b) => a.name.localeCompare(b.name));
+  const files = Array.from(e.target.files || [])
+    .filter(f => /\.ply$/i.test(f.name))
+    .sort((a, b) => a.name.localeCompare(b.name)); // <--- sort by filename
+
   selectEl.innerHTML = '';
-  if (all.length === 0){ statusEl.textContent = 'No files returned by folder picker.'; return; }
-  if (files.length === 0){ statusEl.textContent = `Found ${all.length} files, but no *.ply.`; alert('No PLY files found.'); return; }
+
+  if (files.length === 0) {
+    statusEl.textContent = 'No .ply files found in the selected folder.';
+    return;
+  }
+
   files.forEach(f => {
     const key = f.webkitRelativePath || f.name;
     const opt = document.createElement('option');
-    opt.value = key; opt.textContent = key;
+    opt.value = key;
+    opt.textContent = key;
     selectEl.appendChild(opt);
     loadPLY(f, key);
   });
-  const firstKey = files[0].webkitRelativePath || files[0].name;
-  currentFile = firstKey;
-  statusEl.textContent = `Loaded file list: ${files.length} PLYs`;
+
+  currentFile = files[0].webkitRelativePath || files[0].name;
+  statusEl.textContent = `Found ${files.length} PLYs`;
 }
 
 function loadPLY(file, key){
   const reader = new FileReader();
   const loader = new PLYLoader();
-  reader.onload = e => {
+
+  reader.onload = (e) => {
     try {
       const g = loader.parse(e.target.result);
-      const idx = g.getIndex();
-      const isMesh = !!(idx && idx.count > 0);
+      const N = g.getAttribute('position').count;
+      const L = new Int32Array(N).fill(DEFAULT_LABEL);
 
-      if (isMesh) {
-        if (!g.getAttribute('normal')) g.computeVertexNormals();
-        const N = g.getAttribute('position').count;
-        const L = new Int32Array(N).fill(DEFAULT_LABEL);
-        fileMap[key] = { geometry: g, kind: 'mesh', labels: L };
-      } else {
-        const N = g.getAttribute('position').count;
-        const L = new Int32Array(N).fill(DEFAULT_LABEL);
-        fileMap[key] = { geometry: g, kind: 'points', labels: L };
-      }
+      // Auto-resume labels from LocalStorage if present
+      const skey = `anno:${key}:N=${N}`;
+      try {
+        const raw = localStorage.getItem(skey);
+        if (raw) {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr) && arr.length === N) L.set(arr);
+        }
+      } catch (_) { /* ignore parse errors */ }
 
-      if ((!points && !mesh) || currentFile===key) switchCloud(key);
-    } catch(err){
+      fileMap[key] = { geometry: g, labels: L };
+
+      // If nothing is shown yet or this is the current target, display it
+      if (!points || currentFile === key) switchCloud(key);
+    } catch (err) {
       console.error('Failed to parse', key, err);
       statusEl.textContent = `Failed to parse ${key}`;
     }
   };
+
+  reader.onerror = () => {
+    console.error('Read error for', key);
+    statusEl.textContent = `Failed to read ${key}`;
+  };
+
   reader.readAsArrayBuffer(file);
 }
+
+
+
 
 // ---------- Switch / Dispose ----------
 function disposeCurrent(){
@@ -650,17 +669,40 @@ function resumeAutosave(){
   }catch(e){ console.warn('Resume failed', e); }
 }
 
-// ---------- Save/Load + Export + Reset ----------
-function saveProgress(){
-  const data={};
-  for(const k in fileMap){
-    const entry = fileMap[k];
-    if(entry.labels) data[k]=Array.from(entry.labels);
+function hasAnyLabel(arr){
+  if(!arr) return false;
+  for(let i=0;i<arr.length;i++){ if(arr[i] >= 0) return true; }
+  return false;
+}
+
+function saveProgress()
+{
+  const data = {};
+  //loop over the storage to check for existing keys:
+  for (let i = 0; i < localStorage.length; i++){
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith('anno:')) continue;
+    const fileMapKey = key.split(":")[1];
+    if(fileMapKey in fileMap)
+    {
+      data[fileMapKey] = Array.from(localStorage.getItem(key));
+    }
   }
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='annotations.json'; a.click();
+
+  for (const k in fileMap){
+    const entry = fileMap[k];
+    if (entry && entry.labels){
+      data[k] = Array.from(entry.labels);
+    }
+  }
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'annotations.json';
+  a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),0);
+  statusEl.textContent = `Saved annotations.json (${Object.keys(data).length} files in memory)`;
 }
 
 function loadProgress(){
@@ -721,6 +763,32 @@ function resetAnnotations(){
   selection.clear();
   autosaveLabels();
   statusEl.textContent='Annotations reset for current file';
+}
+
+function exportLocalStorageAll(){
+  const out = {};
+  for (let i = 0; i < localStorage.length; i++){
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith('anno:')) continue;
+    try {
+      const raw = localStorage.getItem(key);
+      // Try to parse JSON; if it fails, keep the raw string
+      try {
+        out[key] = JSON.parse(raw);
+      } catch {
+        out[key] = raw;
+      }
+    } catch (e) {
+      console.warn('Skipping key', key, e);
+    }
+  }
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'localstorage_export.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 0);
+  statusEl.textContent = 'Exported localstorage_export.json';
 }
 
 // ---------- Brush cursor ----------
