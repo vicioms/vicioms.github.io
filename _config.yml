@@ -18,13 +18,13 @@ include:
 
 # Nice defaults
 theme_skin: "dark"          # try: air, dark, plum, etc.
-search: true                # built-in Lunr search
+search: false                # built-in Lunr search
 permalink: /:categories/:title/
 
 author:
   name: "Vincenzo Maria Schimmenti"
-  avatar: /assets/images/avatar.jpg   # optional
-  bio: "Computational biophysics / geometry / ML"
+  avatar: /assets/images/profile.jpeg   # optional
+  bio: "Computational Biophysics / Geometry / Machine Learning / Statistical Physics"
   links:
     - label: "Google Scholar"
       url: "https://scholar.google.com/citations?user="
