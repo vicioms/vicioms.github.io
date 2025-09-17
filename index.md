@@ -1,5 +1,5 @@
 ---
 layout: default
-title: Publications • Vincenzo Schimmenti
+title:  Vincenzo Maria Schimmenti
 description: Academic homepage of Vincenzo Maria Schimmenti
 ---
