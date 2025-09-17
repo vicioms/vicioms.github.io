@@ -13,6 +13,9 @@ plugins:
   - jekyll-include-cache
   - jekyll-remote-theme
 
+include:
+  - _pages
+
 # Nice defaults
 theme_skin: "dark"          # try: air, dark, plum, etc.
 search: true                # built-in Lunr search
