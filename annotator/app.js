@@ -674,14 +674,17 @@ function saveProgress()
     const fileMapKey = key.split(":")[1];
     if(fileMapKey in fileMap)
     {
-      data[fileMapKey] = Array.from(localStorage.getItem(key));
+      data[fileMapKey] = Array.from(JSON.parse(localStorage.getItem(key)));
     }
   }
 
   for (const k in fileMap){
     const entry = fileMap[k];
     if (entry && entry.labels){
-      data[k] = Array.from(entry.labels);
+      if(hasAnyLabel(entry.labels))
+      {
+        data[k] = Array.from(entry.labels);
+      }
     }
   }
 

@@ -1,10 +1,32 @@
-title: Vincenzo Schimmenti
-description: Personal site
+title: "Vincenzo Maria Schimmenti"
+description: "Personal site"
+
 # User site, so baseurl must be empty:
 url: "https://vicioms.github.io"
 baseurl: ""
 
-# Use a Pages theme via remote_theme
-remote_theme: pages-themes/slate@v0.2.0
+# Minimal Mistakes via remote_theme
+remote_theme: "mmistakes/minimal-mistakes@4.27.3"
+
+# Required plugin for this theme
 plugins:
+  - jekyll-include-cache
+  # (optional, helps local builds) 
   - jekyll-remote-theme
+
+# Nice defaults
+theme_skin: "dark"          # try: air, dark, plum, etc.
+search: true                # built-in Lunr search
+permalink: /:categories/:title/
+
+author:
+  name: "Vincenzo Maria Schimmenti"
+  avatar: /assets/images/avatar.jpg   # optional
+  bio: "Computational biophysics / geometry / ML"
+  links:
+    - label: "Google Scholar"
+      url: "https://scholar.google.com/citations?user="
+    - label: "GitHub"
+      url: "https://github.com/vicioms"
+
+# Navigation is defined in _data/navigation.yml (next step)
