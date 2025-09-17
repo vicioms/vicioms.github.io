@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
-gem "jekyll", "~> 4.3"
-gem "jekyll-remote-theme", "~> 0.4.3"
-gem "jekyll-seo-tag"
+# Match GitHub Pages’ build exactly
 gem "github-pages", group: :jekyll_plugins
+
+# Needed by Minimal Mistakes
 gem "jekyll-include-cache", group: :jekyll_plugins

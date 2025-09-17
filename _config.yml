@@ -11,7 +11,6 @@ remote_theme: "mmistakes/minimal-mistakes@4.27.3"
 # Required plugin for this theme
 plugins:
   - jekyll-include-cache
-  # (optional, helps local builds) 
   - jekyll-remote-theme
 
 # Nice defaults
